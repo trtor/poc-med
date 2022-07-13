@@ -6,7 +6,7 @@ const port = env.port;
 
 const server = app.listen(port, () => {
   // eslint-disable-next-line no-console
-  if (!env.nodeEnv.isTest && !env.nodeEnv.isCI) console.log(`MNST EMR Backend, listening on port ${port}`);
+  if (!env.nodeEnv.isTest && !env.nodeEnv.isCI) console.log(`Poc medication backend, listening on port ${port}`);
 });
 
 /**

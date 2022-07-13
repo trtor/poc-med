@@ -1,0 +1,31 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "no-return-await": "warn",
+    "require-await": "warn",
+    "no-await-in-loop": "warn",
+    "no-duplicate-imports": "error",
+    "no-self-compare": "error",
+    "no-template-curly-in-string": "warn",
+    "no-promise-executor-return": "error",
+    "default-case": "warn",
+    "eqeqeq": "error",
+    "func-names": "warn",
+    "no-console": "warn",
+    "no-eval": "error",
+    "no-regex-spaces": "warn",
+    "yoda": "warn",
+    "spaced-comment": "warn",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-non-null-assertion": "off"
+  }
+}

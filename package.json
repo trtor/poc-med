@@ -1,0 +1,48 @@
+{
+  "name": "poc-med",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "repository": "https://github.com/trtor/poc-med.git",
+  "author": "trtor",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "install:prod": "rm -rf node_modules/ && npm install --only=production",
+    "check": "prettier --check \"{src,test}/**/*.{js,jsx,json,md,ts,tsx,html,css}\"",
+    "format": "prettier --write \"{src,test}/**/*.{js,jsx,json,md,ts,tsx,html,css}\"",
+    "lint": "eslint . --ext .ts",
+    "fix": "eslint . --ext .ts --fix",
+    "dev": "nodemon",
+    "build": "rm -rf dist/ && tsc -p .",
+    "start": "npm run build && node dist/index.js",
+    "start:prod": "node dist/index.js",
+    "test": "jest --detectOpenHandles",
+    "test:watch": "jest --watchAll --passWithNoTests",
+    "test:watch:cov": "jest --watchAll --coverage --passWithNoTests"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "ioredis": "^5.2.0",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/jest": "^28.1.5",
+    "@types/node": "^18.0.3",
+    "@types/supertest": "^2.0.12",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^28.1.2",
+    "nodemon": "^2.0.19",
+    "prettier": "^2.7.1",
+    "supertest": "^6.2.4",
+    "ts-jest": "^28.0.5",
+    "ts-node": "^10.8.2",
+    "typescript": "^4.7.4"
+  },
+  "packageManager": "yarn@3.2.1"
+}

@@ -34,14 +34,24 @@ export async function seedMasterData(): Promise<void> {
     ["unit", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
   ]);
   await readWriteRedis<DrugMasterUsageCsv>("DRUG_MASTER_USAGE", "drug_master_usage_id");
-  await readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", "id");
-  await readWriteRedis<DrugUsageGlobalCsv>("DRUG_USAGE_GLOBAL", "drug_usage_id");
+  await readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", "id", [
+    ["id", "TEXT", "NOSTEM"],
+    ["code", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
+    ["display_line_1", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_2", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_3", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["REGIMEN_CODE_HX", "TEXT", "NOSTEM"],
+  ]);
+  await readWriteRedis<DrugUsageGlobalCsv>("DRUG_USAGE_GLOBAL", "drug_usage_id", [
+    ["drug_usage_id", "TAG"],
+    ["dosage_form", "TEXT", "NOSTEM"],
+  ]);
 }
 
 async function readWriteRedis<T extends AllCsvTypes>(
   TableEnum: keyof typeof MasterTableName,
-  pkName: keyof T,
-  indexTable: string[][] = []
+  pkName: keyof T & string,
+  indexTable: [keyof T & string, FieldTypes, ...(FieldOptions | string)[]][] = []
 ): Promise<void> {
   const chunkResponse: number[] = [];
   const indexName = ftIdxName({ table: TableEnum });
@@ -107,3 +117,15 @@ function replaceNull(value: string | null): string | null {
 type ParseRow = Record<string, string | null>;
 
 type ReadCsvResponse<T extends ParseRow> = { data: T[]; rowCount: number };
+
+type FieldTypes = "TEXT" | "TAG" | "NUMERIC" | "GEO" | "VECTOR";
+type FieldOptions =
+  | "SORTABLE"
+  | "UNF"
+  | "NOSTEM"
+  | "NOINDEX"
+  | "PHONETIC"
+  | "WEIGHT"
+  | "SEPARATOR"
+  | "CASESENSITIVE"
+  | "WITHSUFFIXTRIE";

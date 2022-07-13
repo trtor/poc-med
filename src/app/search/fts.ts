@@ -1,0 +1,68 @@
+import type { Request, Response } from "express";
+import type { MedicationMasterCsv } from "../init-data/interface";
+import type { MasterTableName } from "../init-data/table-list";
+import redis from "../redis/redis-con";
+import { ftIdxName } from "../redis/redis-key";
+
+export async function searchMedicationMaster(
+  req: Request<unknown, unknown, unknown, { s?: string }>,
+  res: Response
+): Promise<Response> {
+  const { s: searchKey } = req.query;
+  if (typeof searchKey !== "string" || !searchKey?.trim())
+    return res.status(400).json({ message: "Invalid search param" });
+
+  try {
+    // TODO: Validate input allow some characters
+    // Allow * then replace to empty string
+    const result = await ftSearchQuery<MedicationMasterCsv>("MEDICATION_MASTER", searchKey?.trim());
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json(error as Error);
+  }
+}
+
+async function ftSearchQuery<T extends Record<string, string | null>>(
+  table: keyof typeof MasterTableName,
+  searchKey: string
+): Promise<FtsResult<T>> {
+  if (!searchKey?.length) return { data: [], rowCount: 0 };
+  const idxName = ftIdxName({ table });
+  const termList = searchKey
+    .replace(/\s\s+/g, " ")
+    .split(" ")
+    .filter(str => str.length > 1); // Default RediSearch config min length = 2
+
+  const restTerms = termList.splice(1);
+  const keyword = `*${termList[0]}* ` + restTerms.join("* ") + (restTerms.length ? "*" : "");
+
+  const searchResult = (await redis.call("FT.SEARCH", idxName, keyword, "LIMIT", 0, 10)) as (
+    | number
+    | string
+    | string[]
+  )[];
+  return transformSearchResult<T>(searchResult);
+}
+
+function transformSearchResult<T extends Record<string, string | null>>(
+  result: (number | string | string[])[]
+): FtsResult<T> {
+  const [count, ...keyValue] = result;
+  if (typeof count !== "number") throw { message: "Invalid search result, key 0" };
+  if (keyValue.length % 2 !== 0) throw { message: "Invalid search result, redisKey-value, not in pair" };
+
+  const value = keyValue.filter((v, i): v is string[] => Array.isArray(v) && i % 2 === 1);
+
+  const data = value.map<T>(v => {
+    if (v.length % 2 !== 0) throw { message: "Invalid search result, objectKey-value, not in pair" };
+    const resultKeyValue: [string, string | null][] = [];
+    for (let i = 0; i < v.length; i += 2) {
+      resultKeyValue.push([v[i], v[i + 1] || null]);
+    }
+    return Object.fromEntries(resultKeyValue) as T;
+  });
+
+  return { rowCount: count, data };
+}
+
+type FtsResult<T> = { rowCount: number; data: T[] };

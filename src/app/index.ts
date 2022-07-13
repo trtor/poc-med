@@ -1,12 +1,13 @@
 import "dotenv/config";
-import env from "./environment";
 import app from "./app";
+import env from "./environment";
+import redis from "./redis/redis-con";
 
 const port = env.port;
 
 const server = app.listen(port, () => {
   // eslint-disable-next-line no-console
-  if (!env.nodeEnv.isTest && !env.nodeEnv.isCI) console.log(`Poc medication backend, listening on port ${port}`);
+  if (!env.nodeEnv.isTest && !env.nodeEnv.isCI) console.log(`Poc medication backend, listening on port`, port);
 });
 
 /**
@@ -18,6 +19,13 @@ const server = app.listen(port, () => {
     server.close(() => {
       // eslint-disable-next-line no-console
       if (!env.nodeEnv.isTest && !env.nodeEnv.isCI) console.log("\nClosed out remaining connections");
+      redis
+        .quit()
+        .then(() => {
+          console.log("Redis closed");
+          process.exit(0);
+        })
+        .catch(e => console.error(e));
     });
   })
 );

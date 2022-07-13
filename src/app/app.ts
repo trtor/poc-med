@@ -3,7 +3,7 @@ import cors from "cors";
 import type { Application, Request, Response } from "express";
 import express from "express";
 import { seedMasterData } from "./init-data/seed-csv";
-import { searchMedicationMaster } from "./search/fts";
+import { searchMedicationMaster } from "./search/medication";
 
 const app: Application = express();
 app.use(express.json());

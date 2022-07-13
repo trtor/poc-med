@@ -24,19 +24,20 @@ export async function searchMedicationMaster(
 
 async function ftSearchQuery<T extends Record<string, string | null>>(
   table: keyof typeof MasterTableName,
-  searchKey: string
+  searchKey: string,
+  limit = 50
 ): Promise<FtsResult<T>> {
   if (!searchKey?.length) return { data: [], rowCount: 0 };
   const idxName = ftIdxName({ table });
   const termList = searchKey
     .replace(/\s\s+/g, " ")
     .split(" ")
-    .filter(str => str.length > 1); // Default RediSearch config min length = 2
+    .filter(str => str.length > 1); // Default RedisSearch config min length = 2
 
   const restTerms = termList.splice(1);
   const keyword = `*${termList[0]}* ` + restTerms.join("* ") + (restTerms.length ? "*" : "");
 
-  const searchResult = (await redis.call("FT.SEARCH", idxName, keyword, "LIMIT", 0, 10)) as (
+  const searchResult = (await redis.call("FT.SEARCH", idxName, keyword, "LIMIT", 0, limit)) as (
     | number
     | string
     | string[]

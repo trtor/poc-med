@@ -5,7 +5,13 @@ import { resolve } from "path";
 import redis from "../redis/redis-con";
 import { ftIdxName, redisKey } from "../redis/redis-key";
 import { sliceIntoChunks } from "../utils/slice-chunks";
-import type { DrugMasterUsageCsv, MedicationMasterCsv } from "./interface";
+import type {
+  AllCsvTypes,
+  DrugMasterUsageCsv,
+  DrugUsageGlobalCsv,
+  MedicationMasterCsv,
+  MedicationUsageCsv,
+} from "./interface";
 import { MasterTableName } from "./table-list";
 
 const ttlSec = 60 * 60 * 24;
@@ -21,51 +27,51 @@ export async function seedMasterData(): Promise<void> {
       setTimeout(r, 1000);
     });
   }
-  await readWriteRedis<MedicationMasterCsv>(["MEDICATION_MASTER"], "id", [
+  await readWriteRedis<MedicationMasterCsv>("MEDICATION_MASTER", "id", [
     ["id", "TAG"],
     ["name", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
     ["strength", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["unit", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
   ]);
-  await readWriteRedis<DrugMasterUsageCsv>(["DRUG_MASTER_USAGE"], "drug_master_usage_id");
+  await readWriteRedis<DrugMasterUsageCsv>("DRUG_MASTER_USAGE", "drug_master_usage_id");
+  await readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", "id");
+  await readWriteRedis<DrugUsageGlobalCsv>("DRUG_USAGE_GLOBAL", "drug_usage_id");
 }
 
-async function readWriteRedis<T extends ParseRow>(
-  nameList: (keyof typeof MasterTableName)[],
+async function readWriteRedis<T extends AllCsvTypes>(
+  TableEnum: keyof typeof MasterTableName,
   pkName: keyof T,
   indexTable: string[][] = []
 ): Promise<void> {
-  for (const name of nameList) {
-    const chunkResponse: number[] = [];
-    const indexName = ftIdxName({ table: name });
-    const info = (await redis.call("FT.INFO", indexName).catch(() => undefined)) as (string | string[])[] | undefined;
-    if (info?.[1] === indexName) await redis.call("FT.DROPINDEX", indexName);
-    if (indexTable.length) {
-      await redis.sendCommand(
-        new Redis.Command(
-          "FT.CREATE",
-          [indexName, `ON`, `HASH`, `PREFIX`, `1`, `${redisKey({ table: name })}`, "SCHEMA", ...indexTable.flat()],
-          { replyEncoding: "utf-8" }
-        )
-      );
-    }
-    const readMaster = await readCsv<T>(csvPath(MasterTableName[name]));
-    console.log(name, "read-csv", readMaster.rowCount);
-    const chunkGroup = sliceIntoChunks(readMaster.data, 5000);
-    for (const chunk of chunkGroup) {
-      // redis.hset
-      await Promise.all(
-        chunk.map(async row => {
-          const key = redisKey({ table: name, pk: row[pkName] as string });
-          const writeRes = await redis.hset(key, row);
-          await redis.expire(key, ttlSec);
-          return writeRes;
-        })
-      );
-      chunkResponse.push(chunk.length);
-    }
-    console.log(name, "insert-chunk", chunkResponse.join("-"), "\n");
+  const chunkResponse: number[] = [];
+  const indexName = ftIdxName({ table: TableEnum });
+  const info = (await redis.call("FT.INFO", indexName).catch(() => undefined)) as (string | string[])[] | undefined;
+  if (info?.[1] === indexName) await redis.call("FT.DROPINDEX", indexName);
+  if (indexTable.length) {
+    await redis.sendCommand(
+      new Redis.Command(
+        "FT.CREATE",
+        [indexName, `ON`, `HASH`, `PREFIX`, `1`, `${redisKey({ table: TableEnum })}`, "SCHEMA", ...indexTable.flat()],
+        { replyEncoding: "utf-8" }
+      )
+    );
   }
+  const readMaster = await readCsv<T>(csvPath(MasterTableName[TableEnum]));
+  console.log(TableEnum, "read-csv", readMaster.rowCount);
+  const chunkGroup = sliceIntoChunks(readMaster.data, 5000);
+  for (const chunk of chunkGroup) {
+    // redis.hset
+    await Promise.all(
+      chunk.map(async row => {
+        const key = redisKey({ table: TableEnum, pk: row[pkName] as unknown as string });
+        const writeRes = await redis.hset(key, row);
+        await redis.expire(key, ttlSec);
+        return writeRes;
+      })
+    );
+    chunkResponse.push(chunk.length);
+  }
+  console.log(TableEnum, "insert-chunk", chunkResponse.join("-"), "\n");
 }
 
 async function readCsv<T extends ParseRow>(filePath: string): Promise<ReadCsvResponse<T>> {

@@ -31,3 +31,5 @@ export type DrugUsageGlobalCsv = {
   drug_usage_id: string; // primary key
   dosage_form: string | null;
 };
+
+export type AllCsvTypes = MedicationMasterCsv | DrugMasterUsageCsv | MedicationUsageCsv | DrugUsageGlobalCsv;

@@ -32,15 +32,19 @@ export async function seedMasterData(): Promise<void> {
     ["name", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
     ["strength", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["unit", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["dosage_form", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
   ]);
-  await readWriteRedis<DrugMasterUsageCsv>("DRUG_MASTER_USAGE", "drug_master_usage_id");
+  await readWriteRedis<DrugMasterUsageCsv>("DRUG_MASTER_USAGE", "drug_master_usage_id", [
+    ["drug_master_id", "TAG"],
+    ["drug_master_usage_id", "TAG"],
+  ]);
   await readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", "id", [
     ["id", "TEXT", "NOSTEM"],
     ["code", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
     ["display_line_1", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["display_line_2", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["display_line_3", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
-    ["REGIMEN_CODE_HX", "TEXT", "NOSTEM"],
+    ["REGIMEN_CODE_HX", "TAG"],
   ]);
   await readWriteRedis<DrugUsageGlobalCsv>("DRUG_USAGE_GLOBAL", "drug_usage_id", [
     ["drug_usage_id", "TAG"],
@@ -70,7 +74,6 @@ async function readWriteRedis<T extends AllCsvTypes>(
   console.log(TableEnum, "read-csv", readMaster.rowCount);
   const chunkGroup = sliceIntoChunks(readMaster.data, 5000);
   for (const chunk of chunkGroup) {
-    // redis.hset
     await Promise.all(
       chunk.map(async row => {
         const key = redisKey({ table: TableEnum, pk: row[pkName] as unknown as string });

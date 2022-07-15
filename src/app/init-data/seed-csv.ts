@@ -13,6 +13,7 @@ import type {
   MedicationUsageCsv,
 } from "./interface";
 import { MasterTableName } from "./table-list";
+import { drugUsageImport } from "./usage-transform";
 
 export async function seedMasterData(): Promise<void> {
   const keyList = await redis.keys(redisKey() + "*");
@@ -47,6 +48,9 @@ export async function seedMasterData(): Promise<void> {
     ["drug_usage_id", "TAG"],
     ["dosage_form", "TEXT", "NOSTEM"],
   ]);
+
+  // Transform medication usage into new table
+  await drugUsageImport();
 }
 
 async function readWriteRedis<T extends AllCsvTypes>(

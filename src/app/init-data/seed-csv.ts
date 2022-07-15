@@ -1,10 +1,10 @@
 /* eslint-disable no-await-in-loop */
 import { parseFile } from "@fast-csv/parse";
 import Redis from "ioredis";
-import { resolve } from "path";
 import redis from "../redis/redis-con";
 import { ftIdxName, redisKey } from "../redis/redis-key";
 import { sliceIntoChunks } from "../utils/slice-chunks";
+import { csvPath, ttlSec } from "../utils/utils";
 import type {
   AllCsvTypes,
   DrugMasterUsageCsv,
@@ -13,9 +13,6 @@ import type {
   MedicationUsageCsv,
 } from "./interface";
 import { MasterTableName } from "./table-list";
-
-const ttlSec = 60 * 60 * 24;
-const csvPath = (name: string): string => resolve(__dirname, "../../../csv", `${name}.csv`);
 
 export async function seedMasterData(): Promise<void> {
   const keyList = await redis.keys(redisKey() + "*");
@@ -72,7 +69,17 @@ async function readWriteRedis<T extends AllCsvTypes>(
   }
   const readMaster = await readCsv<T>(csvPath(MasterTableName[TableEnum]));
   console.log(TableEnum, "read-csv", readMaster.rowCount);
-  const chunkGroup = sliceIntoChunks(readMaster.data, 5000);
+  await saveRedisChunk(TableEnum, pkName, readMaster.data);
+  console.log(TableEnum, "insert-chunk", chunkResponse.join("-"), "\n");
+}
+
+async function saveRedisChunk<T extends AllCsvTypes>(
+  TableEnum: keyof typeof MasterTableName,
+  pkName: keyof T & string,
+  data: T[]
+): Promise<number[]> {
+  const chunkResponse: number[] = [];
+  const chunkGroup = sliceIntoChunks(data, 5000);
   for (const chunk of chunkGroup) {
     await Promise.all(
       chunk.map(async row => {
@@ -84,10 +91,10 @@ async function readWriteRedis<T extends AllCsvTypes>(
     );
     chunkResponse.push(chunk.length);
   }
-  console.log(TableEnum, "insert-chunk", chunkResponse.join("-"), "\n");
+  return chunkResponse;
 }
 
-async function readCsv<T extends ParseRow>(filePath: string): Promise<ReadCsvResponse<T>> {
+export async function readCsv<T extends ParseRow>(filePath: string): Promise<ReadCsvResponse<T>> {
   return new Promise<ReadCsvResponse<T>>((resolve, reject) => {
     const readData: T[] = [];
     parseFile<ParseRow, ParseRow>(filePath, { headers: true, trim: true })

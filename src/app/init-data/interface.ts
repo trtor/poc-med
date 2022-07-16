@@ -37,7 +37,7 @@ export type AllCsvTypes = MedicationMasterCsv | DrugMasterUsageCsv | MedicationU
 /**
  * Generated table
  */
-export type MedicationUsageExtended = MedicationUsageCsv & {
+export type MedicationUsageDenormalized = MedicationUsageCsv & {
   uuid: string;
   medication_master_id?: string;
   dosage_form?: string;

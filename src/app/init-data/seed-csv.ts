@@ -68,14 +68,18 @@ export async function seedMasterData(): Promise<void> {
     readDrugUsageGlobal,
   ]);
 
-  const writeRedisMedicationMaster = readWriteRedis<MedicationMasterCsv>("MEDICATION_MASTER", medicationMaster, "id");
-  const writeRedisDrugMasterUsage = readWriteRedis<DrugMasterUsageCsv>(
+  const writeRedisMedicationMaster = writeRedisInChunk<MedicationMasterCsv>(
+    "MEDICATION_MASTER",
+    medicationMaster,
+    "id"
+  );
+  const writeRedisDrugMasterUsage = writeRedisInChunk<DrugMasterUsageCsv>(
     "DRUG_MASTER_USAGE",
     drugMasterUsageRelation,
     "drug_master_usage_id"
   );
-  const writeRedisMedicationUsage = readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", medicationUsage, "id");
-  const writeRedisDrugUsageGlobal = readWriteRedis<DrugUsageGlobalCsv>(
+  const writeRedisMedicationUsage = writeRedisInChunk<MedicationUsageCsv>("MEDICATION_USAGE", medicationUsage, "id");
+  const writeRedisDrugUsageGlobal = writeRedisInChunk<DrugUsageGlobalCsv>(
     "DRUG_USAGE_GLOBAL",
     drugUsageGlobal,
     "drug_usage_id"
@@ -91,7 +95,7 @@ export async function seedMasterData(): Promise<void> {
   await drugUsageImport();
 }
 
-async function readWriteRedis<T extends AllCsvTypes>(
+async function writeRedisInChunk<T extends AllCsvTypes>(
   TableEnum: keyof typeof MasterTableName,
   csvData: ReadCsvResponse<T>,
   pkName: keyof T & string

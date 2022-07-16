@@ -5,9 +5,9 @@ import type {
   DrugUsageGlobalCsv,
   MedicationMasterCsv,
   MedicationUsageCsv,
-  MedicationUsageExtended,
+  MedicationUsageDenormalized,
 } from "./interface";
-import { readCsv } from "./seed-csv";
+import { createFtIndex, readCsv } from "./seed-csv";
 import { MasterTableName } from "./table-list";
 
 export async function drugUsageImport(): Promise<void> {
@@ -32,6 +32,15 @@ export async function drugUsageImport(): Promise<void> {
   );
   // eslint-disable-next-line no-console
   console.log("Medication Usage (denormalized)", medUsageDenormalized.length);
+
+  await createFtIndex("MEDICATION_USAGE_DENORMALIZED", [
+    ["id", "TEXT", "NOSTEM"],
+    ["code", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
+    ["display_line_1", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_2", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_3", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["REGIMEN_CODE_HX", "TAG"],
+  ]);
 }
 
 function medicationUsageMergeDenormalize(
@@ -39,8 +48,8 @@ function medicationUsageMergeDenormalize(
   drugMasterUsageRelationData: DrugMasterUsageCsv[],
   medicationMasterData: MedicationMasterCsv[],
   drugUsageGlobalData: DrugUsageGlobalCsv[]
-): MedicationUsageExtended[] {
-  return medicationUsageData.flatMap<MedicationUsageExtended>(usage => {
+): MedicationUsageDenormalized[] {
+  return medicationUsageData.flatMap<MedicationUsageDenormalized>(usage => {
     const medMasterRelationId = drugMasterUsageRelationData
       .filter(e => e.drug_master_usage_id === usage.id)
       .map(e => e.drug_master_id);
@@ -55,28 +64,28 @@ function medicationUsageMergeDenormalize(
         drugUsageGlobalRelationForm.includes(medMaster.dosage_form)
     );
 
-    const matchMedMasterIdAndDosageForm = filterMedMasterDosageForm.map<MedicationUsageExtended>(medMaster => ({
+    const matchMedMasterIdAndDosageForm = filterMedMasterDosageForm.map<MedicationUsageDenormalized>(medMaster => ({
       ...usage,
       uuid: uuidv4(),
       medication_master_id: medMaster.id,
       dosage_form: medMaster.dosage_form,
       match_med_id_and_form: "1",
     }));
-    const matchMedMasterId = medMasterRelationId.map<MedicationUsageExtended>(id => ({
+    const matchMedMasterId = medMasterRelationId.map<MedicationUsageDenormalized>(id => ({
       ...usage,
       uuid: uuidv4(),
       medication_master_id: id,
       dosage_form: undefined,
       match_med_id_and_form: "0",
     }));
-    const matchGlobalDosageForm = drugUsageGlobalRelationForm.map<MedicationUsageExtended>(dosageForm => ({
+    const matchGlobalDosageForm = drugUsageGlobalRelationForm.map<MedicationUsageDenormalized>(dosageForm => ({
       ...usage,
       uuid: uuidv4(),
       medication_master_id: undefined,
       dosage_form: dosageForm,
       match_med_id_and_form: "0",
     }));
-    const originalMedicationUsage: MedicationUsageExtended = {
+    const originalMedicationUsage: MedicationUsageDenormalized = {
       ...usage,
       uuid: uuidv4(),
       medication_master_id: undefined,

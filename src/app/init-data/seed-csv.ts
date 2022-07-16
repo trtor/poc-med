@@ -93,6 +93,10 @@ export async function seedMasterData(): Promise<void> {
 
   // Transform medication usage into new table
   await drugUsageImport(medicationUsage, drugMasterUsageRelation, medicationMaster, drugUsageGlobal);
+
+  const uniqueRegimenCode = [...new Set(medicationUsage.data.map(e => e.REGIMEN_CODE_HX).filter(e => !!e))];
+  // eslint-disable-next-line no-console
+  console.log("Unique medication usage regimen", uniqueRegimenCode);
 }
 
 async function writeRedisInChunk<T extends AllCsvTypes>(

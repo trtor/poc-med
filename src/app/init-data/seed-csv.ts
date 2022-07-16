@@ -20,6 +20,7 @@ export async function seedMasterData(): Promise<void> {
   if (keyList.length) {
     await redis
       .del(keyList)
+      // eslint-disable-next-line no-console
       .then(() => console.log("Removed key with prefix ", redisKey(), " length:", keyList.length));
     await new Promise(r => {
       setTimeout(r, 1000);
@@ -72,8 +73,10 @@ async function readWriteRedis<T extends AllCsvTypes>(
     );
   }
   const readMaster = await readCsv<T>(csvPath(MasterTableName[TableEnum]));
+  // eslint-disable-next-line no-console
   console.log(TableEnum, "read-csv", readMaster.rowCount);
   await saveRedisChunk(TableEnum, pkName, readMaster.data);
+  // eslint-disable-next-line no-console
   console.log(TableEnum, "insert-chunk", chunkResponse.join("-"), "\n");
 }
 
@@ -103,9 +106,9 @@ export async function readCsv<T extends ParseRow>(filePath: string): Promise<Rea
     const readData: T[] = [];
     parseFile<ParseRow, ParseRow>(filePath, { headers: true, trim: true })
       .transform((data: ParseRow) =>
-        // Transform empty string to null
+        // Transform empty string to undefined
         Object.keys(data).reduce<ParseRow>((acc, key) => {
-          acc[key] = replaceNull(data[key]);
+          acc[key] = replaceUndefined(data[key]);
           return acc;
         }, {})
       )
@@ -122,13 +125,13 @@ export async function readCsv<T extends ParseRow>(filePath: string): Promise<Rea
   });
 }
 
-function replaceNull(value: string | null): string | null {
+function replaceUndefined(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim();
-  if (!trimmed || trimmed === "NULL" || trimmed === "-") return null;
+  if (!trimmed || trimmed === "NULL" || trimmed === "-") return undefined;
   return trimmed;
 }
 
-type ParseRow = Record<string, string | null>;
+type ParseRow = Record<string, string | null | undefined>;
 
 type ReadCsvResponse<T extends ParseRow> = { data: T[]; rowCount: number };
 

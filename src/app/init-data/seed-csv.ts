@@ -26,18 +26,19 @@ export async function seedMasterData(): Promise<void> {
       setTimeout(r, 1000);
     });
   }
-  await readWriteRedis<MedicationMasterCsv>("MEDICATION_MASTER", "id", [
+
+  const createFullTextIndexMedicationMaster = createFtIndex("MEDICATION_MASTER", [
     ["id", "TAG"],
     ["name", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
     ["strength", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["unit", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["dosage_form", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
   ]);
-  await readWriteRedis<DrugMasterUsageCsv>("DRUG_MASTER_USAGE", "drug_master_usage_id", [
+  const createFullTextIndexDrugMasterUsage = createFtIndex("DRUG_MASTER_USAGE", [
     ["drug_master_id", "TAG"],
     ["drug_master_usage_id", "TAG"],
   ]);
-  await readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", "id", [
+  const createFullTextIndexMedicationUsage = createFtIndex("MEDICATION_USAGE", [
     ["id", "TEXT", "NOSTEM"],
     ["code", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
     ["display_line_1", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
@@ -45,9 +46,45 @@ export async function seedMasterData(): Promise<void> {
     ["display_line_3", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["REGIMEN_CODE_HX", "TAG"],
   ]);
-  await readWriteRedis<DrugUsageGlobalCsv>("DRUG_USAGE_GLOBAL", "drug_usage_id", [
+  const createFullTextIndexDrugUsageGlobal = createFtIndex("DRUG_USAGE_GLOBAL", [
     ["drug_usage_id", "TAG"],
     ["dosage_form", "TEXT", "NOSTEM"],
+  ]);
+  await Promise.all([
+    createFullTextIndexMedicationMaster,
+    createFullTextIndexDrugMasterUsage,
+    createFullTextIndexMedicationUsage,
+    createFullTextIndexDrugUsageGlobal,
+  ]);
+
+  const readMedicationUsage = readCsv<MedicationUsageCsv>(csvPath(MasterTableName["MEDICATION_USAGE"]));
+  const readDrugMasterUsageRelation = readCsv<DrugMasterUsageCsv>(csvPath(MasterTableName["DRUG_MASTER_USAGE"]));
+  const readMedicationMaster = readCsv<MedicationMasterCsv>(csvPath(MasterTableName["MEDICATION_MASTER"]));
+  const readDrugUsageGlobal = readCsv<DrugUsageGlobalCsv>(csvPath(MasterTableName["DRUG_USAGE_GLOBAL"]));
+  const [medicationUsage, drugMasterUsageRelation, medicationMaster, drugUsageGlobal] = await Promise.all([
+    readMedicationUsage,
+    readDrugMasterUsageRelation,
+    readMedicationMaster,
+    readDrugUsageGlobal,
+  ]);
+
+  const writeRedisMedicationMaster = readWriteRedis<MedicationMasterCsv>("MEDICATION_MASTER", medicationMaster, "id");
+  const writeRedisDrugMasterUsage = readWriteRedis<DrugMasterUsageCsv>(
+    "DRUG_MASTER_USAGE",
+    drugMasterUsageRelation,
+    "drug_master_usage_id"
+  );
+  const writeRedisMedicationUsage = readWriteRedis<MedicationUsageCsv>("MEDICATION_USAGE", medicationUsage, "id");
+  const writeRedisDrugUsageGlobal = readWriteRedis<DrugUsageGlobalCsv>(
+    "DRUG_USAGE_GLOBAL",
+    drugUsageGlobal,
+    "drug_usage_id"
+  );
+  await Promise.all([
+    writeRedisMedicationMaster,
+    writeRedisDrugMasterUsage,
+    writeRedisMedicationUsage,
+    writeRedisDrugUsageGlobal,
   ]);
 
   // Transform medication usage into new table
@@ -56,10 +93,21 @@ export async function seedMasterData(): Promise<void> {
 
 async function readWriteRedis<T extends AllCsvTypes>(
   TableEnum: keyof typeof MasterTableName,
-  pkName: keyof T & string,
-  indexTable: [keyof T & string, FieldTypes, ...(FieldOptions | string)[]][] = []
+  csvData: ReadCsvResponse<T>,
+  pkName: keyof T & string
 ): Promise<void> {
   const chunkResponse: number[] = [];
+  // eslint-disable-next-line no-console
+  console.log(TableEnum, "read-csv", csvData.rowCount);
+  await saveRedisChunk(TableEnum, pkName, csvData.data);
+  // eslint-disable-next-line no-console
+  console.log(TableEnum, "insert-chunk", chunkResponse.join("-"));
+}
+
+export async function createFtIndex<T extends AllCsvTypes>(
+  TableEnum: keyof typeof MasterTableName,
+  indexTable: TableIndexKeyList<T>[] = []
+): Promise<void> {
   const indexName = ftIdxName({ table: TableEnum });
   const info = (await redis.call("FT.INFO", indexName).catch(() => undefined)) as (string | string[])[] | undefined;
   if (info?.[1] === indexName) await redis.call("FT.DROPINDEX", indexName);
@@ -72,15 +120,9 @@ async function readWriteRedis<T extends AllCsvTypes>(
       )
     );
   }
-  const readMaster = await readCsv<T>(csvPath(MasterTableName[TableEnum]));
-  // eslint-disable-next-line no-console
-  console.log(TableEnum, "read-csv", readMaster.rowCount);
-  await saveRedisChunk(TableEnum, pkName, readMaster.data);
-  // eslint-disable-next-line no-console
-  console.log(TableEnum, "insert-chunk", chunkResponse.join("-"), "\n");
 }
 
-async function saveRedisChunk<T extends AllCsvTypes>(
+export async function saveRedisChunk<T extends AllCsvTypes>(
   TableEnum: keyof typeof MasterTableName,
   pkName: keyof T & string,
   data: T[]
@@ -146,3 +188,5 @@ type FieldOptions =
   | "SEPARATOR"
   | "CASESENSITIVE"
   | "WITHSUFFIXTRIE";
+
+type TableIndexKeyList<T> = [keyof T & string, FieldTypes, ...(FieldOptions | string)[]];

@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { csvPath } from "../utils/utils";
 import type {
   DrugMasterUsageCsv,
   DrugUsageGlobalCsv,
@@ -7,22 +6,15 @@ import type {
   MedicationUsageCsv,
   MedicationUsageDenormalized,
 } from "./interface";
-import { createFtIndex, readCsv } from "./seed-csv";
-import { MasterTableName } from "./table-list";
+import type { ReadCsvResponse } from "./seed-csv";
+import { createFtIndex, saveRedisChunk } from "./seed-csv";
 
-export async function drugUsageImport(): Promise<void> {
-  const readMedicationUsage = readCsv<MedicationUsageCsv>(csvPath(MasterTableName["MEDICATION_USAGE"]));
-  const readDrugMasterUsageRelation = readCsv<DrugMasterUsageCsv>(csvPath(MasterTableName["DRUG_MASTER_USAGE"]));
-  const readMedicationMaster = readCsv<MedicationMasterCsv>(csvPath(MasterTableName["MEDICATION_MASTER"]));
-  const readDrugUsageGlobal = readCsv<DrugUsageGlobalCsv>(csvPath(MasterTableName["DRUG_USAGE_GLOBAL"]));
-
-  const [medicationUsage, drugMasterUsageRelation, medicationMaster, drugUsageGlobal] = await Promise.all([
-    readMedicationUsage,
-    readDrugMasterUsageRelation,
-    readMedicationMaster,
-    readDrugUsageGlobal,
-  ]);
-
+export async function drugUsageImport(
+  medicationUsage: ReadCsvResponse<MedicationUsageCsv>,
+  drugMasterUsageRelation: ReadCsvResponse<DrugMasterUsageCsv>,
+  medicationMaster: ReadCsvResponse<MedicationMasterCsv>,
+  drugUsageGlobal: ReadCsvResponse<DrugUsageGlobalCsv>
+): Promise<void> {
   // De-normalize table
   const medUsageDenormalized = medicationUsageMergeDenormalize(
     medicationUsage.data,
@@ -40,7 +32,11 @@ export async function drugUsageImport(): Promise<void> {
     ["display_line_2", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["display_line_3", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["REGIMEN_CODE_HX", "TAG"],
+    ["medication_master_id", "TAG"],
+    ["dosage_form", "TAG"],
+    ["match_med_id_and_form", "TAG"],
   ]);
+  await saveRedisChunk<MedicationUsageDenormalized>("MEDICATION_USAGE_DENORMALIZED", "uuid", medUsageDenormalized);
 }
 
 function medicationUsageMergeDenormalize(

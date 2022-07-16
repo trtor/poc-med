@@ -92,7 +92,7 @@ export async function seedMasterData(): Promise<void> {
   ]);
 
   // Transform medication usage into new table
-  await drugUsageImport();
+  await drugUsageImport(medicationUsage, drugMasterUsageRelation, medicationMaster, drugUsageGlobal);
 }
 
 async function writeRedisInChunk<T extends AllCsvTypes>(
@@ -179,7 +179,7 @@ function replaceUndefined(value: string | null | undefined): string | undefined 
 
 type ParseRow = Record<string, string | null | undefined>;
 
-type ReadCsvResponse<T extends ParseRow> = { data: T[]; rowCount: number };
+export type ReadCsvResponse<T extends ParseRow> = { data: T[]; rowCount: number };
 
 type FieldTypes = "TEXT" | "TAG" | "NUMERIC" | "GEO" | "VECTOR";
 type FieldOptions =

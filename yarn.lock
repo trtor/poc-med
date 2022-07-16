@@ -1171,6 +1171,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/uuid@npm:^8.3.4":
+  version: 8.3.4
+  resolution: "@types/uuid@npm:8.3.4"
+  checksum: 6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
+  languageName: node
+  linkType: hard
+
 "@types/yargs-parser@npm:*":
   version: 21.0.0
   resolution: "@types/yargs-parser@npm:21.0.0"
@@ -4854,6 +4861,7 @@ __metadata:
     "@types/jest": ^28.1.5
     "@types/node": ^18.0.3
     "@types/supertest": ^2.0.12
+    "@types/uuid": ^8.3.4
     "@typescript-eslint/eslint-plugin": ^5.30.6
     "@typescript-eslint/parser": ^5.30.6
     cors: ^2.8.5
@@ -4874,6 +4882,7 @@ __metadata:
     ts-node: ^10.8.2
     tslib: ^2.4.0
     typescript: ^4.7.4
+    uuid: ^8.3.2
   languageName: unknown
   linkType: soft
 
@@ -5930,6 +5939,15 @@ __metadata:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: c81095493225ecfc28add49c106ca4f09cdf56bc66731aa8dabc2edbbccb1e1bfe2de6a115e5c6a380d3ea166d1636410b62ef216bb07b3feb1cfde1d95d5080
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^8.3.2":
+  version: 8.3.2
+  resolution: "uuid@npm:8.3.2"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 5575a8a75c13120e2f10e6ddc801b2c7ed7d8f3c8ac22c7ed0c7b2ba6383ec0abda88c905085d630e251719e0777045ae3236f04c812184b7c765f63a70e58df
   languageName: node
   linkType: hard
 

@@ -3,8 +3,9 @@ import type { MedicationUsageDenormalized } from "../init-data/interface";
 import { medicationUsageRegimen } from "../init-data/medication-usage-regimen.enum";
 import redis from "../redis/redis-con";
 import { ftIdxName } from "../redis/redis-key";
-import { escapeCharacters, rediSearchEscapeChar } from "../utils/utils";
-import { FtsResult, transformSearchResult } from "./medication";
+import { escapeCharacters, rediSearchEscapeChar, removeDuplicateByKeys } from "../utils/utils";
+import type { FtsResult } from "./medication";
+import { transformSearchResult } from "./medication";
 
 // /usage
 export async function searchMedUsage(
@@ -18,7 +19,14 @@ export async function searchMedUsage(
   try {
     await Promise.resolve(null);
     const result = await ftsUsage(searchKey.trim(), medId?.trim());
-    return res.json(result);
+    const uniqueCode = removeDuplicateByKeys(result.data, [
+      "code",
+      "display_line_1",
+      "display_line_2",
+      "display_line_3",
+      "REGIMEN_CODE_HX",
+    ]);
+    return res.json(uniqueCode);
   } catch (error) {
     console.error(error);
   }
@@ -65,10 +73,12 @@ async function ftsUsage(
   if (medId) {
     const medMasterId: keyof MedicationUsageDenormalized = "medication_master_id";
     const matchMedIdFormFlag: keyof MedicationUsageDenormalized = "match_med_id_and_form";
-    addSort.push(["SORTBY", "match_med_id_and_form", "DESC"]);
+    addSort.push(["SORTBY", matchMedIdFormFlag, "DESC"]);
     keyword += ` @${medMasterId}:{${medId}|__NULL__}`;
     keyword += ` ~@${medMasterId}:{${medId}}`;
     keyword += ` ~@${matchMedIdFormFlag}:{1}`;
+  } else {
+    addSort.push(["SORTBY", "code_length", "ASC"]);
   }
 
   const searchResult = (await redis.call(
@@ -80,8 +90,6 @@ async function ftsUsage(
     0,
     limit
   )) as (number | string | string[])[];
-
-  console.log({ termList, termWithEscape: termWithEscapeList, keyword });
 
   return transformSearchResult<MedicationUsageDenormalized>(searchResult);
 }

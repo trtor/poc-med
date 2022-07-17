@@ -177,13 +177,14 @@ export async function readCsv<T extends ParseRow>(filePath: string): Promise<Rea
   });
 }
 
-function replaceUndefined(value: string | null | undefined): string | undefined {
+function replaceUndefined(value: string | number | null | undefined): string | number | undefined {
+  if (typeof value === "number") return isNaN(value) ? undefined : value;
   const trimmed = value?.trim();
   if (!trimmed || trimmed === "NULL" || trimmed === "-") return undefined;
   return trimmed;
 }
 
-type ParseRow = Record<string, string | null | undefined>;
+type ParseRow = Record<string, string | number | null | undefined>;
 
 export type ReadCsvResponse<T extends ParseRow> = { data: T[]; rowCount: number };
 

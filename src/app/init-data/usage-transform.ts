@@ -42,6 +42,7 @@ export async function drugUsageImport(
     ["medication_master_id", "TAG"],
     ["dosage_form", "TAG"],
     ["match_med_id_and_form", "TAG", "SORTABLE"],
+    ["code_length", "NUMERIC", "SORTABLE"],
   ]);
   await saveRedisChunk<MedicationUsageDenormalized>("MEDICATION_USAGE_DENORMALIZED", "uuid", medUsageDenormalized);
 }
@@ -58,10 +59,12 @@ function medicationUsageMergeDenormalize(
       code: string;
       id_escape: string;
       code_escape: string;
+      code_length: number;
     } = {
       ...usage,
       id_escape: escapeCharacters(usage.id)!,
       code_escape: escapeCharacters(usage.code)!,
+      code_length: usage.code?.length ?? 0,
       display_line_1_escape: escapeCharacters(usage.display_line_1),
       display_line_2_escape: escapeCharacters(usage.display_line_2),
       display_line_3_escape: escapeCharacters(usage.display_line_3),

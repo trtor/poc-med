@@ -45,6 +45,7 @@ export type AllCsvTypes =
 export type MedicationUsageDenormalized = MedicationUsageCsv & {
   id_escape: string;
   code_escape: string;
+  code_length: number;
   display_line_1_escape?: string;
   display_line_2_escape?: string;
   display_line_3_escape?: string;

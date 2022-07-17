@@ -18,7 +18,7 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 COPY package*.json ./
 COPY yarn.lock ./
-RUN yarn install
+RUN yarn install --silent
 COPY . ./
 RUN yarn build
 RUN yarn copy-csv
@@ -43,7 +43,7 @@ WORKDIR /usr/src/app
 # USER node
 COPY package*.json ./
 COPY yarn.lock ./
-RUN yarn install --production
+RUN yarn install --production --silent
 
 COPY .env ./.env
 COPY --from=builder /usr/src/app/dist ./dist

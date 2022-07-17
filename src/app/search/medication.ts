@@ -36,7 +36,9 @@ async function ftSearchQuery<T extends Record<string, string | null>>(
     .split(" ")
     .filter(str => str.length > 1); // Default RedisSearch config min length = 2
 
-  const keyword = termList.map(e => `*${e}*`).join(" ");
+  const restTerms = termList.splice(1);
+  const keyword = `*${termList[0]}* ` + restTerms.join("* ") + (restTerms.length ? "*" : "");
+  // const keyword = termList.map(e => `*${e}*`).join(" "); // cannot search thyroxin 50
 
   const searchResult = (await redis.call("FT.SEARCH", idxName, keyword, "LIMIT", 0, limit)) as (
     | number

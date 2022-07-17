@@ -1,0 +1,14 @@
+version: "3.3"
+
+services:
+  backend:
+    container_name: poc-med-search
+    image: poc-med-search:1.0.0
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - PROXY=${DOCKER_PROXY}
+    ports:
+      - ${DOCKER_EXPOSE_PORT}:5000
+    restart: always

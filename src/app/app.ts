@@ -3,6 +3,7 @@ import cors from "cors";
 import type { Application, Request, Response } from "express";
 import express from "express";
 import { seedMasterData } from "./init-data/seed-csv";
+import { MedApiPathEnum } from "./interfaces/med-api-path";
 import { searchMedicationMaster } from "./search/medication";
 import { searchMedUsage } from "./search/usage";
 
@@ -16,8 +17,8 @@ app.use(cors());
  */
 void seedMasterData();
 
-app.get("/search", searchMedicationMaster);
-app.get("/usage", searchMedUsage);
+app.get(MedApiPathEnum.medMaster, searchMedicationMaster);
+app.get(MedApiPathEnum.usage, searchMedUsage);
 
 /**
  * Health check

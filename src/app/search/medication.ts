@@ -45,7 +45,7 @@ async function ftSearchQuery<T extends Record<string, string | null>>(
   return transformSearchResult<T>(searchResult);
 }
 
-function transformSearchResult<T extends Record<string, string | null>>(
+export function transformSearchResult<T extends Record<string, string | null>>(
   result: (number | string | string[])[]
 ): FtsResult<T> {
   const [count, ...keyValue] = result;
@@ -66,4 +66,4 @@ function transformSearchResult<T extends Record<string, string | null>>(
   return { rowCount: count, data };
 }
 
-type FtsResult<T> = { rowCount: number; data: T[] };
+export type FtsResult<T> = { rowCount: number; data: T[] };

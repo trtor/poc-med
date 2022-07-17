@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { v4 as uuidv4 } from "uuid";
+import { escapeCharacters } from "../utils/utils";
 import type {
   DrugMasterUsageCsv,
   DrugUsageGlobalCsv,
@@ -25,16 +27,21 @@ export async function drugUsageImport(
   // eslint-disable-next-line no-console
   console.log("Medication Usage (denormalized)", medUsageDenormalized.length);
 
-  await createFtIndex("MEDICATION_USAGE_DENORMALIZED", [
+  await createFtIndex<MedicationUsageDenormalized>("MEDICATION_USAGE_DENORMALIZED", [
     ["id", "TEXT", "NOSTEM"],
-    ["code", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
+    ["code", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["id_escape", "TEXT", "NOSTEM"],
+    ["code_escape", "TEXT", "NOSTEM", "WEIGHT", "5.0"],
     ["display_line_1", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_1_escape", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["display_line_2", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_2_escape", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["display_line_3", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
+    ["display_line_3_escape", "TEXT", "NOSTEM", "WEIGHT", "1.0"],
     ["REGIMEN_CODE_HX", "TAG"],
     ["medication_master_id", "TAG"],
     ["dosage_form", "TAG"],
-    ["match_med_id_and_form", "TAG"],
+    ["match_med_id_and_form", "TAG", "SORTABLE"],
   ]);
   await saveRedisChunk<MedicationUsageDenormalized>("MEDICATION_USAGE_DENORMALIZED", "uuid", medUsageDenormalized);
 }
@@ -46,6 +53,20 @@ function medicationUsageMergeDenormalize(
   drugUsageGlobalData: DrugUsageGlobalCsv[]
 ): MedicationUsageDenormalized[] {
   return medicationUsageData.flatMap<MedicationUsageDenormalized>(usage => {
+    const baseUsage: Partial<MedicationUsageDenormalized> & {
+      id: string;
+      code: string;
+      id_escape: string;
+      code_escape: string;
+    } = {
+      ...usage,
+      id_escape: escapeCharacters(usage.id)!,
+      code_escape: escapeCharacters(usage.code)!,
+      display_line_1_escape: escapeCharacters(usage.display_line_1),
+      display_line_2_escape: escapeCharacters(usage.display_line_2),
+      display_line_3_escape: escapeCharacters(usage.display_line_3),
+    };
+
     const medMasterRelationId = drugMasterUsageRelationData
       .filter(e => e.drug_master_usage_id === usage.id)
       .map(e => e.drug_master_id);
@@ -61,30 +82,30 @@ function medicationUsageMergeDenormalize(
     );
 
     const matchMedMasterIdAndDosageForm = filterMedMasterDosageForm.map<MedicationUsageDenormalized>(medMaster => ({
-      ...usage,
+      ...baseUsage,
       uuid: uuidv4(),
       medication_master_id: medMaster.id,
       dosage_form: medMaster.dosage_form,
       match_med_id_and_form: "1",
     }));
     const matchMedMasterId = medMasterRelationId.map<MedicationUsageDenormalized>(id => ({
-      ...usage,
+      ...baseUsage,
       uuid: uuidv4(),
       medication_master_id: id,
       dosage_form: undefined,
       match_med_id_and_form: "0",
     }));
     const matchGlobalDosageForm = drugUsageGlobalRelationForm.map<MedicationUsageDenormalized>(dosageForm => ({
-      ...usage,
+      ...baseUsage,
       uuid: uuidv4(),
-      medication_master_id: undefined,
+      medication_master_id: "__NULL__",
       dosage_form: dosageForm,
       match_med_id_and_form: "0",
     }));
     const originalMedicationUsage: MedicationUsageDenormalized = {
-      ...usage,
+      ...baseUsage,
       uuid: uuidv4(),
-      medication_master_id: undefined,
+      medication_master_id: "__NULL__",
       dosage_form: undefined,
       match_med_id_and_form: "0",
     };

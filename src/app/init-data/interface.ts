@@ -32,14 +32,24 @@ export type DrugUsageGlobalCsv = {
   dosage_form?: string;
 };
 
-export type AllCsvTypes = MedicationMasterCsv | DrugMasterUsageCsv | MedicationUsageCsv | DrugUsageGlobalCsv;
+export type AllCsvTypes =
+  | MedicationMasterCsv
+  | DrugMasterUsageCsv
+  | MedicationUsageCsv
+  | DrugUsageGlobalCsv
+  | MedicationUsageDenormalized;
 
 /**
  * Generated table
  */
 export type MedicationUsageDenormalized = MedicationUsageCsv & {
+  id_escape: string;
+  code_escape: string;
+  display_line_1_escape?: string;
+  display_line_2_escape?: string;
+  display_line_3_escape?: string;
   uuid: string;
-  medication_master_id?: string;
+  medication_master_id: string | "__NULL__";
   dosage_form?: string;
   match_med_id_and_form: "1" | "0";
 };

@@ -94,9 +94,7 @@ export async function seedMasterData(): Promise<void> {
   // Transform medication usage into new table
   await drugUsageImport(medicationUsage, drugMasterUsageRelation, medicationMaster, drugUsageGlobal);
 
-  const uniqueRegimenCode = [...new Set(medicationUsage.data.map(e => e.REGIMEN_CODE_HX).filter(e => !!e))];
-  // eslint-disable-next-line no-console
-  console.log("Unique medication usage regimen", uniqueRegimenCode);
+  // const uniqueRegimenCode = [...new Set(medicationUsage.data.map(e => e.REGIMEN_CODE_HX).filter(e => !!e))];
 }
 
 async function writeRedisInChunk<T extends AllCsvTypes>(
@@ -141,6 +139,10 @@ export async function saveRedisChunk<T extends AllCsvTypes>(
     await Promise.all(
       chunk.map(async row => {
         const key = redisKey({ table: TableEnum, pk: row[pkName] as unknown as string });
+        // row.emptiness = Object.entries(row)
+        //   .filter(([, value]) => !value)
+        //   .map(([key]) => key)
+        //   .join(",");
         const writeRes = await redis.hset(key, row);
         await redis.expire(key, ttlSec);
         return writeRes;

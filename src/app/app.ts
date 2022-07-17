@@ -4,6 +4,7 @@ import type { Application, Request, Response } from "express";
 import express from "express";
 import { seedMasterData } from "./init-data/seed-csv";
 import { searchMedicationMaster } from "./search/medication";
+import { searchMedUsage } from "./search/usage";
 
 const app: Application = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(cors());
 void seedMasterData();
 
 app.get("/search", searchMedicationMaster);
+app.get("/usage", searchMedUsage);
 
 /**
  * Health check

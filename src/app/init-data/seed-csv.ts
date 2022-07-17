@@ -1,17 +1,17 @@
 /* eslint-disable no-await-in-loop */
 import { parseFile } from "@fast-csv/parse";
 import Redis from "ioredis";
-import redis from "../redis/redis-con";
-import { ftIdxName, redisKey } from "../redis/redis-key";
-import { sliceIntoChunks } from "../utils/slice-chunks";
-import { csvPath, ttlSec } from "../utils/utils";
 import type {
   AllCsvTypes,
   DrugMasterUsageCsv,
   DrugUsageGlobalCsv,
   MedicationMasterCsv,
   MedicationUsageCsv,
-} from "./redis-model-interface";
+} from "../interfaces/redis-model-interface";
+import redis from "../redis/redis-con";
+import { ftIdxName, redisKey } from "../redis/redis-key";
+import { sliceIntoChunks } from "../utils/slice-chunks";
+import { csvPath, ttlSec } from "../utils/utils";
 import { MasterTableName } from "./table-list";
 import { drugUsageImport } from "./usage-transform";
 

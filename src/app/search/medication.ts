@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import type { MedicationMasterCsv } from "../init-data/redis-model-interface";
 import type { MasterTableName } from "../init-data/table-list";
+import type { MedicationMasterCsv } from "../interfaces/redis-model-interface";
 import type { MedicationMasterErrorResponse, MedicationMasterOkResponse } from "../interfaces/response";
 import redis from "../redis/redis-con";
 import { ftIdxName } from "../redis/redis-key";

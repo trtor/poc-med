@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { v4 as uuidv4 } from "uuid";
-import { escapeCharacters } from "../utils/utils";
 import type {
   DrugMasterUsageCsv,
   DrugUsageGlobalCsv,
   MedicationMasterCsv,
   MedicationUsageCsv,
   MedicationUsageDenormalized,
-} from "./redis-model-interface";
+} from "../interfaces/redis-model-interface";
+import { escapeCharacters } from "../utils/utils";
 import type { ReadCsvResponse } from "./seed-csv";
 import { createFtIndex, saveRedisChunk } from "./seed-csv";
 

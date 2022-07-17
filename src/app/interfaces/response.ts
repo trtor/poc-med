@@ -1,4 +1,4 @@
-import type { MedicationMasterCsv } from "../init-data/redis-model-interface";
+import type { MedicationMasterCsv } from "./redis-model-interface";
 
 export interface MedicationMasterOkResponse extends GeneralSuccessResponse {
   status: 200;

@@ -13,6 +13,7 @@ COPY package*.json ./
 
 RUN npm config set proxy ${PROXY}
 RUN npm config set https-proxy ${PROXY}
+RUN npm config set strict-ssl false
 
 RUN npm install 
 RUN npm run build
@@ -52,6 +53,7 @@ ENV HTTP_PROXY=$PROXY \
 
 RUN npm config set proxy ${PROXY}
 RUN npm config set https-proxy ${PROXY}
+RUN npm config set strict-ssl false
 
 WORKDIR /usr/src/app
 # RUN chown node:node .

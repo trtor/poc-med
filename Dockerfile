@@ -1,5 +1,5 @@
 # First Stage
-FROM node:14-alpine AS builder
+FROM node:16-alpine AS builder
 
 ARG PROXY
 ENV HTTP_PROXY=$PROXY \
@@ -37,7 +37,7 @@ RUN npm run copy-csv
 # RUN yarn copy-csv
 
 # Second Stage
-FROM node:14-alpine
+FROM node:16-alpine
 ENV NODE_ENV=production
 ARG PROXY
 ENV HTTP_PROXY=$PROXY \

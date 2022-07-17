@@ -6,18 +6,19 @@ ENV HTTP_PROXY=$PROXY \
   HTTPS_PROXY=$PROXY \
   http_proxy=$PROXY \
   https_proxy=$PROXY
-# RUN yarn config set proxy ${PROXY} && \
-#   yarn config set https-proxy ${PROXY}
+
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+COPY package*.json ./
+COPY yarn.lock ./
+COPY .yarnrc.yml ./
+
 RUN yarn config set httpProxy ${PROXY} && \
   yarn config set httpsProxy ${PROXY}
 RUN yarn set version berry
 RUN yarn config set httpProxy ${PROXY} && \
   yarn config set httpsProxy ${PROXY}
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-COPY package*.json ./
-COPY yarn.lock ./
 RUN yarn install --silent
 COPY . ./
 RUN yarn build
@@ -42,6 +43,14 @@ WORKDIR /usr/src/app
 # USER node
 COPY package*.json ./
 COPY yarn.lock ./
+COPY .yarnrc.yml ./
+
+RUN yarn config set httpProxy ${PROXY} && \
+  yarn config set httpsProxy ${PROXY}
+RUN yarn set version berry
+RUN yarn config set httpProxy ${PROXY} && \
+  yarn config set httpsProxy ${PROXY}
+
 RUN yarn install --production --silent
 
 COPY .env ./.env

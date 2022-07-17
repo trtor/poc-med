@@ -6,7 +6,7 @@ import type {
   MedicationMasterCsv,
   MedicationUsageCsv,
   MedicationUsageDenormalized,
-} from "../interfaces/redis-model-interface";
+} from "../interfaces/med-api-redis-model";
 import { escapeCharacters } from "../utils/utils";
 import type { ReadCsvResponse } from "./seed-csv";
 import { createFtIndex, saveRedisChunk } from "./seed-csv";

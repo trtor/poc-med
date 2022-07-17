@@ -7,7 +7,7 @@ import type {
   DrugUsageGlobalCsv,
   MedicationMasterCsv,
   MedicationUsageCsv,
-} from "../interfaces/redis-model-interface";
+} from "../interfaces/med-api-redis-model";
 import redis from "../redis/redis-con";
 import { ftIdxName, redisKey } from "../redis/redis-key";
 import { sliceIntoChunks } from "../utils/slice-chunks";

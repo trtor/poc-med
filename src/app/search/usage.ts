@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { medicationUsageRegimen } from "../init-data/medication-usage-regimen.enum";
-import type { MedicationUsageDenormalized } from "../interfaces/redis-model-interface";
+import type { MedicationUsageDenormalized } from "../interfaces/med-api-redis-model";
+import {
+  MedicationUsageDenormalizedErrorResponse,
+  MedicationUsageDenormalizedOkResponse,
+} from "../interfaces/med-api-response";
 import redis from "../redis/redis-con";
 import { ftIdxName } from "../redis/redis-key";
 import { escapeCharacters, rediSearchEscapeChar, removeDuplicateByKeys } from "../utils/utils";
@@ -10,25 +14,25 @@ import { transformSearchResult } from "./medication";
 // /usage
 export async function searchMedUsage(
   req: Request<unknown, unknown, unknown, { id?: string; s?: string }>,
-  res: Response
+  res: Response<MedicationUsageDenormalizedOkResponse | MedicationUsageDenormalizedErrorResponse>
 ): Promise<Response> {
   const { id: medId, s: searchKey } = req.query;
 
   if (typeof searchKey !== "string" || !searchKey?.trim())
-    return res.status(400).json({ message: "Invalid search param" });
+    return res.status(400).json({ status: 400, message: "Invalid search param" });
   try {
     await Promise.resolve(null);
     const result = await ftsUsage(searchKey.trim(), medId?.trim());
-    const uniqueCode = removeDuplicateByKeys(result.data, [
+    const payload = removeDuplicateByKeys(result.data, [
       "code",
       "display_line_1",
       "display_line_2",
       "display_line_3",
       "REGIMEN_CODE_HX",
     ]);
-    return res.json(uniqueCode);
+    return res.json({ status: 200, payload });
   } catch (error) {
-    console.error(error);
+    return res.status(500).json({ status: 500, message: (error as Error).message, error });
   }
 
   return res.status(200);

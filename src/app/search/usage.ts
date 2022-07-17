@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import type { MedicationUsageDenormalized } from "../init-data/interface";
 import { medicationUsageRegimen } from "../init-data/medication-usage-regimen.enum";
+import type { MedicationUsageDenormalized } from "../init-data/redis-model-interface";
 import redis from "../redis/redis-con";
 import { ftIdxName } from "../redis/redis-key";
 import { escapeCharacters, rediSearchEscapeChar, removeDuplicateByKeys } from "../utils/utils";

@@ -11,7 +11,7 @@ import type {
   DrugUsageGlobalCsv,
   MedicationMasterCsv,
   MedicationUsageCsv,
-} from "./interface";
+} from "./redis-model-interface";
 import { MasterTableName } from "./table-list";
 import { drugUsageImport } from "./usage-transform";
 

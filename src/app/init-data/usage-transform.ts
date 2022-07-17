@@ -7,7 +7,7 @@ import type {
   MedicationMasterCsv,
   MedicationUsageCsv,
   MedicationUsageDenormalized,
-} from "./interface";
+} from "./redis-model-interface";
 import type { ReadCsvResponse } from "./seed-csv";
 import { createFtIndex, saveRedisChunk } from "./seed-csv";
 

@@ -1,24 +1,25 @@
 import type { Request, Response } from "express";
-import type { MedicationMasterCsv } from "../init-data/interface";
+import type { MedicationMasterCsv } from "../init-data/redis-model-interface";
 import type { MasterTableName } from "../init-data/table-list";
+import type { MedicationMasterErrorResponse, MedicationMasterOkResponse } from "../interfaces/response";
 import redis from "../redis/redis-con";
 import { ftIdxName } from "../redis/redis-key";
 
 export async function searchMedicationMaster(
   req: Request<unknown, unknown, unknown, { s?: string }>,
-  res: Response
+  res: Response<MedicationMasterOkResponse | MedicationMasterErrorResponse>
 ): Promise<Response> {
   const { s: searchKey } = req.query;
   if (typeof searchKey !== "string" || !searchKey?.trim())
-    return res.status(400).json({ message: "Invalid search param" });
+    return res.status(400).json({ status: 400, message: "Invalid search param" });
 
   try {
     // TODO: Validate input allow some characters
     // Allow * then replace to empty string
     const result = await ftSearchQuery<MedicationMasterCsv>("MEDICATION_MASTER", searchKey?.trim());
-    return res.status(200).json(result);
+    return res.status(200).json({ status: 200, payload: result.data });
   } catch (error) {
-    return res.status(400).json(error as Error);
+    return res.status(400).json({ status: 500, message: (error as Error)?.message, error });
   }
 }
 

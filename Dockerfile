@@ -6,8 +6,8 @@ FROM node:18 AS builder
 #   HTTPS_PROXY=$PROXY \
 #   http_proxy=$PROXY \
 #   https_proxy=$PROXY
-# RUN yarn config set proxy ${PROXY} && \
-#   yarn config set https-proxy ${PROXY}
+RUN yarn config set proxy ${PROXY} && \
+  yarn config set https-proxy ${PROXY}
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app

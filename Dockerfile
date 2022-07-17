@@ -10,7 +10,7 @@ ENV HTTP_PROXY=$PROXY \
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 COPY package*.json ./
-COPY tsconfig*.json ./
+COPY tsconfig.json ./
 
 RUN npm config set proxy ${PROXY}
 RUN npm config set https-proxy ${PROXY}

@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { medicationUsageRegimen } from "../init-data/medication-usage-regimen.enum";
+import type { UsageRequestParams } from "../interfaces/med-api-path";
 import type { MedicationUsageDenormalized } from "../interfaces/med-api-redis-model";
-import {
+import type {
   MedicationUsageDenormalizedErrorResponse,
   MedicationUsageDenormalizedOkResponse,
 } from "../interfaces/med-api-response";
@@ -13,7 +14,7 @@ import { transformSearchResult } from "./medication";
 
 // /usage
 export async function searchMedUsage(
-  req: Request<unknown, unknown, unknown, { id?: string; s?: string }>,
+  req: Request<unknown, unknown, unknown, UsageRequestParams>,
   res: Response<MedicationUsageDenormalizedOkResponse | MedicationUsageDenormalizedErrorResponse>
 ): Promise<Response> {
   const { id: medId, s: searchKey } = req.query;

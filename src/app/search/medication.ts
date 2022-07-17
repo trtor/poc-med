@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
 import type { MasterTableName } from "../init-data/table-list";
+import type { MedMasterParams } from "../interfaces/med-api-path";
 import type { MedicationMasterCsv } from "../interfaces/med-api-redis-model";
 import type { MedicationMasterErrorResponse, MedicationMasterOkResponse } from "../interfaces/med-api-response";
 import redis from "../redis/redis-con";
 import { ftIdxName } from "../redis/redis-key";
 
 export async function searchMedicationMaster(
-  req: Request<unknown, unknown, unknown, { s?: string }>,
+  req: Request<unknown, unknown, unknown, MedMasterParams>,
   res: Response<MedicationMasterOkResponse | MedicationMasterErrorResponse>
 ): Promise<Response> {
   const { s: searchKey } = req.query;

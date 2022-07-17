@@ -1,13 +1,13 @@
 # First Stage
-FROM node:14-alpine AS builder
+FROM node:18-alpine AS builder
 
-# ARG PROXY
+ARG PROXY
 # ENV HTTP_PROXY=$PROXY \
 #   HTTPS_PROXY=$PROXY \
 #   http_proxy=$PROXY \
 #   https_proxy=$PROXY
-RUN yarn config set proxy ${PROXY} && \
-  yarn config set https-proxy ${PROXY}
+RUN yarn config set httpProxy ${PROXY} && \
+  yarn config set httpsProxy ${PROXY}
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -19,9 +19,9 @@ RUN yarn build
 RUN yarn copy-csv
 
 # Second Stage
-FROM node:14-alpine
+FROM node:18-alpine
 ENV NODE_ENV=production
-# ARG PROXY
+ARG PROXY
 # ENV HTTP_PROXY=$PROXY \
 #   HTTPS_PROXY=$PROXY \
 #   http_proxy=$PROXY \

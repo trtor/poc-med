@@ -9,11 +9,11 @@ ENV HTTP_PROXY=$PROXY \
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-# COPY package*.json ./
-# COPY yarn.lock ./
-# COPY .yarnrc.yml ./
-# COPY .yarn ./
-COPY . ./
+COPY package*.json ./
+COPY yarn.lock ./
+COPY .yarnrc.yml ./
+COPY .yarn ./.yarn
+# COPY . ./
 
 RUN yarn config set httpProxy ${PROXY} && \
   yarn config set httpsProxy ${PROXY}
@@ -48,7 +48,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY yarn.lock ./
 COPY .yarnrc.yml ./
-COPY .yarn ./
+COPY .yarn ./.yarn
 
 RUN yarn config set httpProxy ${PROXY} && \
   yarn config set httpsProxy ${PROXY}

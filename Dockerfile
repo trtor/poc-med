@@ -26,8 +26,8 @@ ENV NODE_ENV=production
 #   HTTPS_PROXY=$PROXY \
 #   http_proxy=$PROXY \
 #   https_proxy=$PROXY
-# RUN yarn config set proxy ${PROXY} && \
-#   yarn config set https-proxy ${PROXY}
+RUN yarn config set proxy ${PROXY} && \
+  yarn config set https-proxy ${PROXY}
 
 WORKDIR /usr/src/app
 # RUN chown node:node .

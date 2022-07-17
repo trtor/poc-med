@@ -21,6 +21,8 @@ RUN yarn config set httpProxy ${PROXY} && \
 # RUN yarn config set httpProxy ${PROXY} && \
 # yarn config set httpsProxy ${PROXY}
 
+RUN yarn -v
+
 RUN yarn install --silent
 # COPY . ./
 RUN yarn build

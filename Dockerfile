@@ -11,8 +11,8 @@ ENV HTTP_PROXY=$PROXY \
 RUN yarn config set httpProxy ${PROXY} && \
   yarn config set httpsProxy ${PROXY}
 RUN yarn set version berry
-# RUN yarn config set proxy ${PROXY} && \
-#   yarn config set https-proxy ${PROXY}
+RUN yarn config set httpProxy ${PROXY} && \
+  yarn config set httpsProxy ${PROXY}
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -31,12 +31,11 @@ ENV HTTP_PROXY=$PROXY \
   HTTPS_PROXY=$PROXY \
   http_proxy=$PROXY \
   https_proxy=$PROXY
-# RUN yarn config set proxy ${PROXY} && \
-#   yarn config set https-proxy ${PROXY}
-RUN yarn config set proxy ${PROXY} && \
-  yarn config set https-proxy ${PROXY}
+RUN yarn config set httpProxy ${PROXY} && \
+  yarn config set httpsProxy ${PROXY}
 RUN yarn set version berry
-
+RUN yarn config set httpProxy ${PROXY} && \
+  yarn config set httpsProxy ${PROXY}
 
 WORKDIR /usr/src/app
 # RUN chown node:node .

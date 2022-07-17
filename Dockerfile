@@ -6,6 +6,8 @@ ENV HTTP_PROXY=$PROXY \
   HTTPS_PROXY=$PROXY \
   http_proxy=$PROXY \
   https_proxy=$PROXY
+RUN yarn config set proxy ${PROXY} && \
+  yarn config set https-proxy ${PROXY}
 RUN yarn config set httpProxy ${PROXY} && \
   yarn config set httpsProxy ${PROXY}
 RUN yarn set version berry
